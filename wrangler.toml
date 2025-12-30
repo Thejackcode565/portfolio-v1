@@ -1,0 +1,23 @@
+name = "portfolio-v1"
+type = "javascript"
+account_id = "YOUR_ACCOUNT_ID"
+workers_dev = true
+
+[build]
+command = "npm run build"
+cwd = "./"
+watch_paths = ["src/**/*.tsx", "src/**/*.ts", "src/**/*.css"]
+
+[env.production]
+vars = { ENVIRONMENT = "production" }
+
+[build.upload]
+format = "service-worker"
+
+[experimental]
+streams = true
+
+[[routes]]
+pattern = "example.com/*"
+zone_id = "YOUR_ZONE_ID"
+

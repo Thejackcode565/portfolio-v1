@@ -1,0 +1,9 @@
+{
+  "main": "dist/index.html",
+  "name": "portfolio-v1",
+  "type": "spa",
+  "buildConfig": {
+    "buildCommand": "npm run build",
+    "buildOutputDirectory": "dist"
+  }
+}
