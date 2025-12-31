@@ -152,6 +152,15 @@
   animation: scale-in 0.2s ease-out forwards;
 }
 
+@keyframes fact-in {
+  0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-fact-in {
+  animation: fact-in 0.6s ease-out forwards;
+}
+
 /* Particle animations - optimized for performance */
 @keyframes particle-float {
   0%, 100% { 
