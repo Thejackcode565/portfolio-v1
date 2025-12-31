@@ -8,14 +8,12 @@ const experiences = [
     company: "Ky Technologies Pvt Ltd",
     period: "Jan 2025 - Mar 2025",
     description: "Built Customer Service Management System with JWT auth, geofencing",
-    current: true,
   },
   {
     title: "Freelance Developer",
     company: "Upwork",
     period: "Jul 2021 - Jul 2022",
     description: "Python web scraping & automation tools for clients",
-    current: false,
   },
 ];
 
@@ -67,14 +65,7 @@ const Experience = () => {
             <div className="space-y-4">
               {experiences.map((exp, idx) => (
                 <div key={idx} className="p-4 bg-white/5 rounded-lg">
-                  <div className="flex items-start justify-between mb-1">
-                    <h4 className="font-medium text-white text-sm">{exp.title}</h4>
-                    {exp.current && (
-                      <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-xs rounded">
-                        Current
-                      </span>
-                    )}
-                  </div>
+                  <h4 className="font-medium text-white text-sm mb-1">{exp.title}</h4>
                   <p className="text-amber-500 text-xs mb-1">{exp.company}</p>
                   <p className="text-gray-500 text-xs mb-2">{exp.period}</p>
                   <p className="text-gray-400 text-sm">{exp.description}</p>

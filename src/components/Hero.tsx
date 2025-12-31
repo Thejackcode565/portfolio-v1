@@ -16,8 +16,12 @@ const Hero = () => {
           {/* Header */}
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6 mb-8">
             {/* Avatar */}
-            <div className="w-24 h-24 md:w-28 md:h-28 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-3xl md:text-4xl font-bold text-white flex-shrink-0">
-              HR
+            <div className="w-24 h-24 md:w-28 md:h-28 rounded-xl overflow-hidden flex-shrink-0 border border-white/10">
+              <img 
+                src="/favicon.ico" 
+                alt="Hareesh Ragavendra" 
+                className="w-full h-full object-cover"
+              />
             </div>
 
             {/* Info */}
