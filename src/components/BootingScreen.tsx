@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { CheckCircle2, Loader2, Sparkles } from "lucide-react";
 
 const steps = [
-  "Loading assets...",
-  "Connecting services...",
-  "Preparing experience...",
-  "Almost there...",
+  "Initializing",
+  "Loading modules",
+  "Preparing interface",
+  "Almost ready",
 ];
 
 interface BootingScreenProps {
@@ -14,32 +13,28 @@ interface BootingScreenProps {
 
 const BootingScreen = ({ onComplete }: BootingScreenProps) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [phase, setPhase] = useState<"loading" | "welcome" | "exiting">("loading");
+  const [phase, setPhase] = useState<"loading" | "ready" | "exit">("loading");
 
-  const handleComplete = useCallback(() => {
-    onComplete();
-  }, [onComplete]);
+  const handleComplete = useCallback(() => onComplete(), [onComplete]);
 
   useEffect(() => {
     if (phase !== "loading") return;
     
     if (currentStep < steps.length) {
-      const timer = setTimeout(() => {
-        setCurrentStep(prev => prev + 1);
-      }, 300);
+      const timer = setTimeout(() => setCurrentStep(prev => prev + 1), 400);
       return () => clearTimeout(timer);
     } else {
-      setPhase("welcome");
+      setPhase("ready");
     }
   }, [currentStep, phase]);
 
   useEffect(() => {
-    if (phase === "welcome") {
-      const timer = setTimeout(() => setPhase("exiting"), 500);
+    if (phase === "ready") {
+      const timer = setTimeout(() => setPhase("exit"), 600);
       return () => clearTimeout(timer);
     }
-    if (phase === "exiting") {
-      const timer = setTimeout(handleComplete, 400);
+    if (phase === "exit") {
+      const timer = setTimeout(handleComplete, 500);
       return () => clearTimeout(timer);
     }
   }, [phase, handleComplete]);
@@ -47,62 +42,40 @@ const BootingScreen = ({ onComplete }: BootingScreenProps) => {
   const progress = (currentStep / steps.length) * 100;
 
   return (
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-[#0f0f1a] transition-all duration-500 ${
-        phase === "exiting" ? "opacity-0 scale-105" : "opacity-100"
-      }`}
-    >
-      {/* Background gradient orbs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "0.5s" }} />
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black transition-all duration-500 ${
+      phase === "exit" ? "opacity-0" : "opacity-100"
+    }`}>
+      {/* Minimal ambient */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-white/[0.015] rounded-full blur-3xl" />
       </div>
 
-      <div className="relative z-10 w-full max-w-md px-6">
+      <div className="relative z-10 w-full max-w-xs px-6">
         {phase === "loading" ? (
           <div className="text-center">
-            {/* Logo */}
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center mb-8">
-              <Sparkles className="w-10 h-10 text-white" />
+            {/* Current step */}
+            <p className="text-white/40 text-sm font-extralight tracking-[0.2em] uppercase mb-8">
+              {steps[currentStep] || "Ready"}
+            </p>
+
+            {/* Progress bar */}
+            <div className="h-[1px] bg-white/10 rounded-full overflow-hidden mb-4">
+              <div
+                className="h-full bg-white/40 transition-all duration-400 ease-out"
+                style={{ width: `${progress}%` }}
+              />
             </div>
 
-            {/* Progress */}
-            <div className="glass-card rounded-2xl p-6 mb-4">
-              <div className="space-y-3">
-                {steps.map((step, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex items-center gap-3 transition-opacity duration-300 ${
-                      idx <= currentStep ? "opacity-100" : "opacity-30"
-                    }`}
-                  >
-                    {idx < currentStep ? (
-                      <CheckCircle2 className="w-5 h-5 text-green-400" />
-                    ) : idx === currentStep ? (
-                      <Loader2 className="w-5 h-5 text-pink-400 animate-spin" />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full border border-white/20" />
-                    )}
-                    <span className="text-sm text-white/70">{step}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Progress bar */}
-              <div className="mt-6 h-1 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-pink-500 to-purple-500 rounded-full transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
+            {/* Percentage */}
+            <p className="text-white/20 text-xs font-mono tracking-wider">
+              {Math.round(progress)}%
+            </p>
           </div>
         ) : (
           <div className="text-center">
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center mb-6">
-              <span className="text-3xl">✨</span>
-            </div>
-            <h1 className="text-2xl font-bold text-white">Welcome back!</h1>
+            <p className="text-white/60 text-lg font-extralight tracking-wide">
+              Welcome back
+            </p>
           </div>
         )}
       </div>

@@ -1,15 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 const allMotivationalQuotes = [
-  "Every expert was once a beginner.",
-  "Your potential is limitless.",
-  "Great things take time.",
-  "Dream big. Start small.",
-  "The best time to start is today.",
-  "Believe in yourself.",
-  "Progress, not perfection.",
-  "Stay curious. Stay hungry.",
+  "Code is poetry.",
+  "Build something meaningful.",
+  "Every line of code tells a story.",
+  "Simplicity is the ultimate sophistication.",
+  "Innovation distinguishes leaders.",
+  "Think different. Code better.",
 ];
 
 const getRandomQuotes = () => {
@@ -31,7 +29,14 @@ const getGreeting = () => {
   return "Good Night";
 };
 
-type Phase = "askName" | "welcome" | "motivation" | "loading" | "facts" | "ready" | "exit";
+const getISTTime = () => {
+  const now = new Date();
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istTime = new Date(now.getTime() + (istOffset + now.getTimezoneOffset() * 60 * 1000));
+  return istTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
+};
+
+type Phase = "askName" | "welcome" | "motivation" | "facts" | "ready" | "exit";
 
 interface IntroScreenProps {
   onComplete: () => void;
@@ -41,6 +46,7 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
   const [userName, setUserName] = useState("");
   const [phase, setPhase] = useState<Phase>("askName");
   const [fact, setFact] = useState("");
+  const [currentTime, setCurrentTime] = useState(getISTTime());
   const [textVisible, setTextVisible] = useState(false);
   const [motivationIndex, setMotivationIndex] = useState(0);
   const [motivationalQuotes] = useState(getRandomQuotes);
@@ -51,6 +57,11 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
   useEffect(() => {
     if (phase === "askName" && inputRef.current) inputRef.current.focus();
   }, [phase]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(getISTTime()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const fetchFact = async () => {
@@ -82,145 +93,153 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
     if (phase === "welcome") {
       const timer = setTimeout(() => {
         setTextVisible(false);
-        setTimeout(() => { setPhase("motivation"); setTextVisible(true); }, 400);
-      }, 2000);
+        setTimeout(() => { setPhase("motivation"); setTextVisible(true); }, 500);
+      }, 2500);
       return () => clearTimeout(timer);
     }
     if (phase === "motivation") {
       const timer = setTimeout(() => {
         if (motivationIndex < motivationalQuotes.length - 1) {
           setTextVisible(false);
-          setTimeout(() => { setMotivationIndex(prev => prev + 1); setTextVisible(true); }, 300);
+          setTimeout(() => { setMotivationIndex(prev => prev + 1); setTextVisible(true); }, 400);
         } else {
           setTextVisible(false);
-          setTimeout(() => setPhase("loading"), 400);
+          setTimeout(() => { setPhase("facts"); setTextVisible(true); }, 500);
         }
-      }, 1800);
-      return () => clearTimeout(timer);
-    }
-    if (phase === "loading") {
-      const timer = setTimeout(() => { setPhase("facts"); setTextVisible(true); }, 600);
+      }, 2000);
       return () => clearTimeout(timer);
     }
     if (phase === "facts") {
       const timer = setTimeout(() => {
         setTextVisible(false);
-        setTimeout(() => { setPhase("ready"); setTextVisible(true); }, 400);
-      }, 2500);
+        setTimeout(() => { setPhase("ready"); setTextVisible(true); }, 500);
+      }, 3000);
       return () => clearTimeout(timer);
     }
     if (phase === "ready") {
       const timer = setTimeout(() => {
         setPhase("exit");
-        setTimeout(handleComplete, 800);
-      }, 1500);
+        setTimeout(handleComplete, 1000);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [phase, motivationIndex, motivationalQuotes.length, handleComplete]);
 
   return (
-    <div className={`fixed inset-0 z-[60] flex flex-col items-center justify-center bg-[#0f0f1a] transition-all duration-700 ${
-      phase === "exit" ? "opacity-0 scale-105" : "opacity-100"
+    <div className={`fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black transition-all duration-1000 ${
+      phase === "exit" ? "opacity-0" : "opacity-100"
     }`}>
-      {/* Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-pink-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+      {/* Minimal ambient light */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/[0.02] rounded-full blur-3xl" />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center justify-center px-6 max-w-2xl mx-auto text-center">
+      {/* Time - Top */}
+      <div className="absolute top-8 left-1/2 -translate-x-1/2">
+        <p className="text-white/40 text-4xl md:text-5xl font-extralight tracking-[0.2em] font-mono">
+          {currentTime}
+        </p>
+      </div>
+
+      {/* Main content */}
+      <div className="relative z-10 flex flex-col items-center justify-center px-6 max-w-xl mx-auto text-center min-h-[300px]">
         
         {/* Ask Name */}
         {phase === "askName" && (
-          <div className="animate-fade-in space-y-8">
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center mb-4">
-              <Sparkles className="w-10 h-10 text-white" />
+          <div className="animate-fade-in space-y-10">
+            <div>
+              <p className="text-white/30 text-xs uppercase tracking-[0.4em] mb-4">Welcome</p>
+              <h2 className="text-white text-3xl md:text-5xl font-extralight tracking-wide">
+                {getGreeting()}
+              </h2>
             </div>
-            <h2 className="text-white text-2xl md:text-4xl font-light">{getGreeting()}! 👋</h2>
-            <p className="text-white/50">What should I call you?</p>
             
-            <input
-              ref={inputRef}
-              type="text"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()}
-              placeholder="Your name"
-              className="w-64 md:w-80 px-6 py-4 glass rounded-2xl text-white text-center text-xl outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-white/30"
-            />
-            
-            <button
-              onClick={handleNameSubmit}
-              disabled={!userName.trim()}
-              className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-medium transition-all ${
-                userName.trim() 
-                  ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:shadow-lg hover:shadow-pink-500/25" 
-                  : "glass text-white/30 cursor-not-allowed"
-              }`}
-            >
-              Continue <ArrowRight className="w-5 h-5" />
-            </button>
+            <div className="space-y-6">
+              <input
+                ref={inputRef}
+                type="text"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()}
+                placeholder="Enter your name"
+                className="w-72 md:w-96 bg-transparent border-b border-white/20 focus:border-white/60 text-white text-center text-2xl font-extralight py-4 outline-none transition-all placeholder:text-white/20"
+              />
+              
+              <div>
+                <button
+                  onClick={handleNameSubmit}
+                  disabled={!userName.trim()}
+                  className={`group inline-flex items-center gap-3 text-sm uppercase tracking-[0.3em] transition-all duration-300 ${
+                    userName.trim() 
+                      ? "text-white/60 hover:text-white" 
+                      : "text-white/20 cursor-not-allowed"
+                  }`}
+                >
+                  <span>Continue</span>
+                  <ArrowRight className={`w-4 h-4 transition-transform ${userName.trim() ? "group-hover:translate-x-1" : ""}`} />
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
         {/* Welcome */}
         {phase === "welcome" && (
-          <div className={`transition-all duration-500 ${textVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-            <h1 className="text-white text-3xl md:text-5xl font-light mb-4">
-              Hey, <span className="text-gradient font-medium">{userName}</span>! ✨
+          <div className={`transition-all duration-700 ease-out ${textVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+            <p className="text-white/30 text-xs uppercase tracking-[0.4em] mb-6">Hello</p>
+            <h1 className="text-white text-4xl md:text-6xl font-extralight tracking-wide">
+              {userName}
             </h1>
-            <p className="text-white/50 text-lg">Welcome to my portfolio</p>
           </div>
         )}
 
         {/* Motivation */}
         {phase === "motivation" && (
-          <div className={`transition-all duration-400 ${textVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}>
-            <p className="text-white/70 text-xl md:text-2xl font-light italic">
-              "{motivationalQuotes[motivationIndex]}"
+          <div className={`transition-all duration-500 ease-out ${textVisible ? "opacity-100" : "opacity-0"}`}>
+            <p className="text-white/50 text-xl md:text-2xl font-extralight tracking-wide leading-relaxed">
+              {motivationalQuotes[motivationIndex]}
             </p>
-          </div>
-        )}
-
-        {/* Loading */}
-        {phase === "loading" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-3 h-3 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-              <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-              <div className="w-3 h-3 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-            </div>
           </div>
         )}
 
         {/* Facts */}
         {phase === "facts" && fact && (
-          <div className={`transition-all duration-500 ${textVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-            <p className="text-pink-400 text-sm uppercase tracking-wider mb-4">Did you know?</p>
-            <p className="text-white/70 text-lg leading-relaxed">{fact}</p>
+          <div className={`transition-all duration-700 ease-out ${textVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+            <p className="text-white/20 text-xs uppercase tracking-[0.4em] mb-6">Did you know</p>
+            <p className="text-white/40 text-lg md:text-xl font-extralight leading-relaxed max-w-md">
+              {fact}
+            </p>
           </div>
         )}
 
         {/* Ready */}
         {phase === "ready" && (
-          <div className={`transition-all duration-500 ${textVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}>
-            <div className="text-5xl mb-6">🚀</div>
-            <h1 className="text-white text-2xl md:text-4xl font-light">
-              Let's explore, <span className="text-gradient">{userName}</span>!
+          <div className={`transition-all duration-700 ease-out ${textVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}>
+            <p className="text-white/20 text-xs uppercase tracking-[0.4em] mb-6">Ready</p>
+            <h1 className="text-white text-3xl md:text-5xl font-extralight tracking-wide">
+              Entering Portfolio
             </h1>
+            <div className="mt-8 flex justify-center">
+              <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+            </div>
           </div>
         )}
       </div>
 
-      {/* Skip */}
+      {/* Skip - Bottom right */}
       {phase !== "askName" && phase !== "exit" && (
         <button
-          onClick={() => { setPhase("exit"); setTimeout(handleComplete, 600); }}
-          className="absolute bottom-8 right-8 text-white/30 hover:text-white/60 text-sm transition-colors"
+          onClick={() => { setPhase("exit"); setTimeout(handleComplete, 800); }}
+          className="absolute bottom-8 right-8 text-white/20 hover:text-white/50 text-xs uppercase tracking-[0.3em] transition-colors"
         >
-          Skip →
+          Skip
         </button>
       )}
+
+      {/* Bottom line */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+        <div className="w-8 h-[1px] bg-white/10" />
+      </div>
     </div>
   );
 };
