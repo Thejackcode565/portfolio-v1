@@ -10,8 +10,17 @@ const getPersonalizedQuotes = (name: string) => [
   `Every great journey begins with a single step, ${name}.`,
   `${name}, you are the author of your own constellation.`,
   `Dream beyond horizons, ${name}. The universe is listening.`,
-  `In this vast cosmos, ${name}, you are unique and irreplaceable.`,
-  `${name}, your mind holds more connections than stars in the Milky Way.`,
+];
+
+const generalMotivations = [
+  "The only way to do great work is to love what you do.",
+  "Innovation distinguishes between a leader and a follower.",
+  "Stay hungry, stay foolish.",
+  "Code is poetry written for machines to execute and humans to understand.",
+  "The best time to plant a tree was 20 years ago. The second best time is now.",
+  "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+  "Your limitation—it's only your imagination.",
+  "Dream it. Wish it. Do it.",
 ];
 
 const fallbackFacts = [
@@ -22,12 +31,64 @@ const fallbackFacts = [
   "The observable universe is 93 billion light-years in diameter.",
 ];
 
+const getTimeOfDay = () => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 7) return "sunrise";
+  if (hour >= 7 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 17) return "afternoon";
+  if (hour >= 17 && hour < 19) return "sunset";
+  if (hour >= 19 && hour < 22) return "evening";
+  if (hour >= 22 || hour < 2) return "night";
+  return "midnight";
+};
+
 const getGreeting = () => {
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) return "Good Morning";
   if (hour >= 12 && hour < 17) return "Good Afternoon";
   if (hour >= 17 && hour < 21) return "Good Evening";
   return "Good Night";
+};
+
+const getISTTime = () => {
+  const now = new Date();
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istTime = new Date(now.getTime() + (istOffset + now.getTimezoneOffset() * 60 * 1000));
+  return istTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+};
+
+const getBackgroundStyle = (timeOfDay: string) => {
+  switch (timeOfDay) {
+    case "sunrise":
+      return "bg-gradient-to-b from-orange-900/40 via-pink-900/30 to-purple-900/40";
+    case "morning":
+      return "bg-gradient-to-b from-blue-400/20 via-cyan-300/10 to-yellow-200/10";
+    case "afternoon":
+      return "bg-gradient-to-b from-sky-500/20 via-blue-400/10 to-cyan-300/10";
+    case "sunset":
+      return "bg-gradient-to-b from-orange-500/30 via-red-500/20 to-purple-700/30";
+    case "evening":
+      return "bg-gradient-to-b from-indigo-900/40 via-purple-900/30 to-pink-900/20";
+    case "night":
+      return "bg-gradient-to-b from-slate-900/60 via-indigo-950/50 to-purple-950/40";
+    case "midnight":
+      return "bg-gradient-to-b from-black via-slate-950/80 to-indigo-950/60";
+    default:
+      return "bg-black";
+  }
+};
+
+const getAccentColor = (timeOfDay: string) => {
+  switch (timeOfDay) {
+    case "sunrise": return "from-orange-400 to-pink-500";
+    case "morning": return "from-cyan-400 to-blue-500";
+    case "afternoon": return "from-sky-400 to-blue-500";
+    case "sunset": return "from-orange-500 to-red-500";
+    case "evening": return "from-purple-400 to-pink-500";
+    case "night": return "from-indigo-400 to-purple-500";
+    case "midnight": return "from-slate-400 to-indigo-500";
+    default: return "from-purple-400 to-blue-500";
+  }
 };
 
 type Phase = "bigbang" | "askName" | "welcome" | "journey" | "motivation" | "cosmic" | "warp" | "exit";
@@ -40,14 +101,25 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
   const [userName, setUserName] = useState("");
   const [phase, setPhase] = useState<Phase>("bigbang");
   const [cosmicFact, setCosmicFact] = useState("");
+  const [currentTime, setCurrentTime] = useState(getISTTime());
+  const [timeOfDay, setTimeOfDay] = useState(getTimeOfDay());
   const [textVisible, setTextVisible] = useState(false);
   const [motivationIndex, setMotivationIndex] = useState(0);
-  const [personalizedQuotes, setPersonalizedQuotes] = useState<string[]>([]);
+  const [allQuotes, setAllQuotes] = useState<string[]>([]);
   const [stars, setStars] = useState<Array<{ id: number; x: number; y: number; size: number; delay: number }>>([]);
   const [bigBangPhase, setBigBangPhase] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleComplete = useCallback(() => onComplete(), [onComplete]);
+  const accentGradient = getAccentColor(timeOfDay);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(getISTTime());
+      setTimeOfDay(getTimeOfDay());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const generatedStars = Array.from({ length: 200 }, (_, i) => ({
@@ -59,7 +131,6 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
     }));
     setStars(generatedStars);
 
-    // Fetch random fact from API
     const fetchFact = async () => {
       try {
         const res = await fetch("https://uselessfacts.jsph.pl/api/v2/facts/random?language=en");
@@ -98,9 +169,10 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
 
   const handleNameSubmit = () => {
     if (userName.trim()) {
-      const quotes = getPersonalizedQuotes(userName.trim());
-      const shuffled = quotes.sort(() => Math.random() - 0.5).slice(0, 3);
-      setPersonalizedQuotes(shuffled);
+      const personalized = getPersonalizedQuotes(userName.trim());
+      const general = [...generalMotivations].sort(() => Math.random() - 0.5).slice(0, 2);
+      const combined = [...personalized.sort(() => Math.random() - 0.5).slice(0, 2), general[0]];
+      setAllQuotes(combined.sort(() => Math.random() - 0.5));
       setPhase("welcome");
       setTextVisible(true);
     }
@@ -123,7 +195,7 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
     }
     if (phase === "motivation") {
       const timer = setTimeout(() => {
-        if (motivationIndex < personalizedQuotes.length - 1) {
+        if (motivationIndex < allQuotes.length - 1) {
           setTextVisible(false);
           setTimeout(() => { setMotivationIndex(prev => prev + 1); setTextVisible(true); }, 600);
         } else {
@@ -147,11 +219,32 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
       }, 2500);
       return () => clearTimeout(timer);
     }
-  }, [phase, motivationIndex, personalizedQuotes.length, handleComplete]);
+  }, [phase, motivationIndex, allQuotes.length, handleComplete]);
+
+  const showStars = timeOfDay === "night" || timeOfDay === "midnight" || timeOfDay === "evening";
 
   return (
     <div className={`fixed inset-0 z-[60] flex flex-col items-center justify-center overflow-hidden transition-all duration-1000 ${phase === "exit" ? "opacity-0" : "opacity-100"}`}>
-      <div className="absolute inset-0 bg-black">
+      {/* Time-based background */}
+      <div className={`absolute inset-0 bg-black transition-all duration-1000`}>
+        <div className={`absolute inset-0 ${getBackgroundStyle(timeOfDay)} transition-all duration-1000`} />
+        
+        {/* Sun/Moon based on time */}
+        {(timeOfDay === "sunrise" || timeOfDay === "morning" || timeOfDay === "afternoon") && phase !== "bigbang" && (
+          <div className={`absolute w-32 h-32 rounded-full blur-xl transition-all duration-1000 ${
+            timeOfDay === "sunrise" ? "top-1/3 right-1/4 bg-orange-400/30" :
+            timeOfDay === "morning" ? "top-1/4 right-1/3 bg-yellow-300/20" :
+            "top-1/4 left-1/2 bg-yellow-200/20"
+          }`} />
+        )}
+        {(timeOfDay === "sunset") && phase !== "bigbang" && (
+          <div className="absolute bottom-1/4 left-1/4 w-40 h-40 rounded-full bg-orange-500/30 blur-2xl" />
+        )}
+        {(timeOfDay === "night" || timeOfDay === "midnight") && phase !== "bigbang" && (
+          <div className="absolute top-1/4 right-1/4 w-20 h-20 rounded-full bg-slate-200/20 blur-sm" />
+        )}
+
+        {/* Big Bang Effect */}
         {phase === "bigbang" && (
           <>
             <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full transition-all duration-1000 ${
@@ -178,19 +271,16 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
           </>
         )}
 
-        <div className={`absolute inset-0 transition-opacity duration-2000 ${phase !== "bigbang" && phase !== "askName" ? "opacity-100" : "opacity-0"}`}>
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-purple-900/20 via-transparent to-blue-900/20" />
-          <div className="absolute bottom-0 right-0 w-3/4 h-3/4 bg-gradient-to-tl from-indigo-900/30 via-transparent to-transparent blur-3xl" />
-        </div>
-
-        <div className={`absolute inset-0 transition-opacity duration-2000 ${phase === "bigbang" && bigBangPhase < 3 ? "opacity-0" : "opacity-100"}`}>
+        {/* Stars - show more prominently at night */}
+        <div className={`absolute inset-0 transition-opacity duration-2000 ${phase === "bigbang" && bigBangPhase < 3 ? "opacity-0" : showStars ? "opacity-100" : "opacity-30"}`}>
           {stars.map((star) => (
             <div key={star.id} className={`absolute rounded-full bg-white star-twinkle ${phase === "warp" ? "warp-star" : ""}`}
               style={{ left: `${star.x}%`, top: `${star.y}%`, width: `${star.size}px`, height: `${star.size}px`, animationDelay: `${star.delay}s` }} />
           ))}
         </div>
 
-        {phase !== "bigbang" && phase !== "askName" && phase !== "exit" && (
+        {/* Shooting stars */}
+        {phase !== "bigbang" && phase !== "askName" && phase !== "exit" && showStars && (
           <>
             <div className="shooting-star" style={{ top: '15%', left: '5%', animationDelay: '0s' }} />
             <div className="shooting-star" style={{ top: '35%', left: '70%', animationDelay: '2.5s' }} />
@@ -198,6 +288,7 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
           </>
         )}
 
+        {/* Warp effect */}
         {phase === "warp" && (
           <div className="absolute inset-0">
             {Array.from({ length: 100 }).map((_, i) => (
@@ -211,6 +302,16 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
         }`} />
       </div>
 
+      {/* IST Time Display */}
+      {phase !== "bigbang" && phase !== "exit" && (
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20">
+          <p className="text-white/40 text-sm font-light tracking-widest">
+            {currentTime} <span className="text-white/20">IST</span>
+          </p>
+        </div>
+      )}
+
+      {/* Big Bang Text */}
       {phase === "bigbang" && bigBangPhase >= 1 && bigBangPhase < 3 && (
         <div className="absolute inset-0 flex items-center justify-center z-20">
           <p className={`text-white/80 text-xl md:text-2xl font-extralight tracking-[0.5em] uppercase transition-opacity duration-500 ${bigBangPhase === 1 ? "opacity-100" : "opacity-0"}`}>
@@ -219,21 +320,22 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
         </div>
       )}
 
+      {/* Main Content */}
       <div className={`relative z-10 flex flex-col items-center justify-center px-6 max-w-2xl mx-auto text-center min-h-[400px] transition-opacity duration-1000 ${phase === "bigbang" ? "opacity-0" : "opacity-100"}`}>
         {phase === "askName" && (
           <div className={`space-y-10 transition-all duration-1000 ${textVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
             <div>
-              <div className="inline-flex items-center gap-3 text-purple-400/60 text-xs uppercase tracking-[0.5em] mb-8">
-                <span className="w-8 h-px bg-purple-400/30" /><span>Welcome, Traveler</span><span className="w-8 h-px bg-purple-400/30" />
+              <div className={`inline-flex items-center gap-3 text-xs uppercase tracking-[0.5em] mb-8 bg-gradient-to-r ${accentGradient} bg-clip-text text-transparent opacity-60`}>
+                <span className="w-8 h-px bg-current opacity-30" /><span>Welcome, Traveler</span><span className="w-8 h-px bg-current opacity-30" />
               </div>
               <h2 className="text-white text-4xl md:text-6xl font-extralight tracking-wide">{getGreeting()}</h2>
             </div>
             <div className="space-y-8">
               <input ref={inputRef} type="text" value={userName} onChange={(e) => setUserName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()}
-                placeholder="What shall I call you?" className="w-72 md:w-96 bg-transparent border-b border-white/20 focus:border-purple-400/60 text-white text-center text-2xl font-extralight py-4 outline-none transition-all duration-500 placeholder:text-white/20" />
+                placeholder="What shall I call you?" className={`w-72 md:w-96 bg-transparent border-b border-white/20 focus:border-white/50 text-white text-center text-2xl font-extralight py-4 outline-none transition-all duration-500 placeholder:text-white/20`} />
               <div>
                 <button onClick={handleNameSubmit} disabled={!userName.trim()}
-                  className={`group inline-flex items-center gap-3 px-10 py-4 rounded-full transition-all duration-500 ${userName.trim() ? "bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-400/30 text-white hover:from-purple-500/30 hover:to-blue-500/30" : "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed"}`}>
+                  className={`group inline-flex items-center gap-3 px-10 py-4 rounded-full transition-all duration-500 ${userName.trim() ? `bg-gradient-to-r ${accentGradient} bg-opacity-20 border border-white/20 text-white hover:border-white/40` : "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed"}`}>
                   <span className="text-sm uppercase tracking-[0.3em]">Begin Journey</span>
                   <ArrowRight className={`w-4 h-4 transition-transform duration-300 ${userName.trim() ? "group-hover:translate-x-2" : ""}`} />
                 </button>
@@ -245,11 +347,11 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
         {phase === "welcome" && (
           <div className={`transition-all duration-1000 ease-out ${textVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-10 scale-95"}`}>
             <div className="mb-8">
-              <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-purple-500/30 to-blue-500/30 border border-purple-400/20 flex items-center justify-center ring-4 ring-purple-500/10">
+              <div className={`w-24 h-24 mx-auto rounded-full bg-gradient-to-br ${accentGradient} bg-opacity-30 border border-white/20 flex items-center justify-center ring-4 ring-white/10`}>
                 <span className="text-4xl font-light text-white">{userName.charAt(0).toUpperCase()}</span>
               </div>
             </div>
-            <p className="text-purple-400/60 text-xs uppercase tracking-[0.5em] mb-4">Greetings</p>
+            <p className={`text-xs uppercase tracking-[0.5em] mb-4 bg-gradient-to-r ${accentGradient} bg-clip-text text-transparent opacity-60`}>Greetings</p>
             <h1 className="text-5xl md:text-7xl font-extralight tracking-wider text-white mb-4">{userName}</h1>
             <p className="text-white/40 text-lg font-extralight">Welcome to my universe</p>
           </div>
@@ -259,25 +361,29 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
           <div className={`transition-all duration-1000 ease-out ${textVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"}`}>
             <div className="text-6xl mb-8 cosmic-glow">✧</div>
             <p className="text-2xl md:text-3xl font-extralight text-white/80 leading-relaxed">
-              Prepare for a journey<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">through the cosmos</span>
+              Prepare for a journey<br/><span className={`text-transparent bg-clip-text bg-gradient-to-r ${accentGradient}`}>through the cosmos</span>
             </p>
           </div>
         )}
 
-        {phase === "motivation" && personalizedQuotes[motivationIndex] && (
+        {phase === "motivation" && allQuotes[motivationIndex] && (
           <div className={`transition-all duration-1000 ease-out ${textVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}>
-            <div className="mb-8 text-purple-400/40 text-4xl cosmic-glow">✦</div>
+            <div className={`mb-8 text-4xl cosmic-glow bg-gradient-to-r ${accentGradient} bg-clip-text text-transparent opacity-40`}>✦</div>
             <p className="text-xl md:text-2xl font-extralight leading-relaxed max-w-lg">
-              {personalizedQuotes[motivationIndex].split(userName).map((part, idx, arr) => (
-                <span key={idx}>
-                  <span className="text-white/70">{part}</span>
-                  {idx < arr.length - 1 && <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400 font-light">{userName}</span>}
-                </span>
-              ))}
+              {allQuotes[motivationIndex].includes(userName) ? (
+                allQuotes[motivationIndex].split(userName).map((part, idx, arr) => (
+                  <span key={idx}>
+                    <span className="text-white/70">{part}</span>
+                    {idx < arr.length - 1 && <span className={`text-transparent bg-clip-text bg-gradient-to-r ${accentGradient} font-light`}>{userName}</span>}
+                  </span>
+                ))
+              ) : (
+                <span className="text-white/70">{allQuotes[motivationIndex]}</span>
+              )}
             </p>
             <div className="flex justify-center gap-3 mt-10">
-              {personalizedQuotes.map((_, idx) => (
-                <div key={idx} className={`rounded-full transition-all duration-500 ${idx === motivationIndex ? "w-10 h-1.5 bg-gradient-to-r from-purple-500 to-blue-500" : "w-1.5 h-1.5 bg-white/20"}`} />
+              {allQuotes.map((_, idx) => (
+                <div key={idx} className={`rounded-full transition-all duration-500 ${idx === motivationIndex ? `w-10 h-1.5 bg-gradient-to-r ${accentGradient}` : "w-1.5 h-1.5 bg-white/20"}`} />
               ))}
             </div>
           </div>
@@ -285,8 +391,8 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
 
         {phase === "cosmic" && (
           <div className={`transition-all duration-1000 ease-out ${textVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-            <div className="inline-flex items-center gap-3 text-cyan-400/50 text-xs uppercase tracking-[0.4em] mb-8">
-              <span className="w-6 h-px bg-cyan-400/30" /><span>Cosmic Wonder</span><span className="w-6 h-px bg-cyan-400/30" />
+            <div className={`inline-flex items-center gap-3 text-xs uppercase tracking-[0.4em] mb-8 bg-gradient-to-r ${accentGradient} bg-clip-text text-transparent opacity-50`}>
+              <span className="w-6 h-px bg-current opacity-30" /><span>Did You Know?</span><span className="w-6 h-px bg-current opacity-30" />
             </div>
             <p className="text-white/60 text-lg md:text-xl font-extralight leading-relaxed max-w-md">{cosmicFact}</p>
           </div>
@@ -295,14 +401,15 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
         {phase === "warp" && (
           <div className={`transition-all duration-1000 ease-out ${textVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"}`}>
             <h1 className="text-4xl md:text-6xl font-extralight tracking-wider text-white mb-4">Entering Portfolio</h1>
-            <p className="text-white/50 text-lg font-extralight">Hold on, <span className="text-purple-400">{userName}</span>...</p>
+            <p className="text-white/50 text-lg font-extralight">Hold on, <span className={`text-transparent bg-clip-text bg-gradient-to-r ${accentGradient}`}>{userName}</span>...</p>
           </div>
         )}
       </div>
 
+      {/* Skip Button */}
       {phase !== "bigbang" && phase !== "askName" && phase !== "exit" && phase !== "warp" && (
         <button onClick={() => { setPhase("exit"); setTimeout(handleComplete, 800); }}
-          className="absolute bottom-8 right-8 text-white/20 hover:text-purple-400/60 text-xs uppercase tracking-[0.3em] transition-colors duration-300">Skip</button>
+          className="absolute bottom-8 right-8 text-white/20 hover:text-white/50 text-xs uppercase tracking-[0.3em] transition-colors duration-300">Skip</button>
       )}
 
       <style>{`
@@ -317,7 +424,7 @@ const IntroScreen = ({ onComplete }: IntroScreenProps) => {
         @keyframes warpLine { 0% { transform: scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: scale(100); opacity: 0; } }
         .warp-line { position: absolute; width: 2px; height: 2px; background: white; border-radius: 50%; animation: warpLine 1.5s ease-in forwards; }
         .warp-star { animation: warpLine 1s ease-in forwards !important; }
-        .cosmic-glow { text-shadow: 0 0 30px rgba(168, 85, 247, 0.5), 0 0 60px rgba(168, 85, 247, 0.3); }
+        .cosmic-glow { text-shadow: 0 0 30px currentColor; }
       `}</style>
     </div>
   );
