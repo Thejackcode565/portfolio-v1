@@ -7,6 +7,7 @@ import Experience from "@/components/Experience";
 import Contact from "@/components/Contact";
 import BootingScreen from "@/components/BootingScreen";
 import IntroScreen from "@/components/IntroScreen";
+import BackgroundAnimation from "@/components/BackgroundAnimation";
 
 type ScreenPhase = "checking" | "intro" | "booting" | "main";
 
@@ -32,7 +33,7 @@ const Index = () => {
   };
 
   if (phase === "checking") {
-    return <div className="fixed inset-0 bg-[#0f0f1a]" />;
+    return <div className="fixed inset-0 bg-[#1a1a1a]" />;
   }
 
   return (
@@ -40,9 +41,10 @@ const Index = () => {
       {phase === "intro" && <IntroScreen onComplete={handleIntroComplete} />}
       {phase === "booting" && <BootingScreen onComplete={handleBootingComplete} />}
       {phase === "main" && (
-        <div className="min-h-screen bg-[#0f0f1a]">
+        <div className="min-h-screen bg-[#1a1a1a] relative">
+          <BackgroundAnimation />
           <Navbar />
-          <main>
+          <main className="relative z-10">
             <Hero />
             <Skills />
             <Projects />

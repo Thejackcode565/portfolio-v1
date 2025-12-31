@@ -7,7 +7,7 @@ const Contact = () => {
   const { isAuthorized } = useAuth();
 
   return (
-    <section id="contact" className="py-16 md:py-20 px-4 bg-[#1a1a1a]">
+    <section id="contact" className="py-16 md:py-20 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <motion.div
