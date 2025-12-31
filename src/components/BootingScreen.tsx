@@ -44,7 +44,7 @@ const BootingScreen = ({ onComplete }: BootingScreenProps) => {
           idx === currentStep ? { ...step, status: "complete" } : step
         ));
         setCurrentStep(prev => prev + 1);
-      }, 120);
+      }, 80); // ~1.5s total (80ms * 6 steps + transitions)
 
       return () => clearTimeout(timer);
     } else {
@@ -58,14 +58,14 @@ const BootingScreen = ({ onComplete }: BootingScreenProps) => {
     if (phase === "welcome") {
       const timer = setTimeout(() => {
         setPhase("exiting");
-      }, 600);
+      }, 400);
       return () => clearTimeout(timer);
     }
     
     if (phase === "exiting") {
       const timer = setTimeout(() => {
         handleComplete();
-      }, 300);
+      }, 200);
       return () => clearTimeout(timer);
     }
   }, [phase, handleComplete]);
