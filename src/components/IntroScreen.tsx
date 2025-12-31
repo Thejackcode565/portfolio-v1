@@ -1,10 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 // Fallback facts in case API fails
 const fallbackFacts = [
-  "The first computer programmer was Ada Lovelace, who wrote algorithms for Charles Babbage's Analytical Engine in 1843.",
-  "The first 1GB hard drive, announced in 1980, weighed about 550 pounds and cost $40,000.",
-  "The first website ever created is still online at info.cern.ch.",
+  "The first computer programmer was Ada Lovelace in 1843.",
+  "The first 1GB hard drive weighed 550 pounds.",
+  "The first website is still online at info.cern.ch.",
+];
+
+// Motivational quotes
+const motivationalQuotes = [
+  "Every expert was once a beginner.",
+  "Your potential is limitless.",
+  "Great things take time. Keep going.",
 ];
 
 interface IntroScreenProps {
@@ -14,198 +22,313 @@ interface IntroScreenProps {
 // Get current IST time
 const getISTTime = () => {
   const now = new Date();
-  const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+  const istOffset = 5.5 * 60 * 60 * 1000;
   const istTime = new Date(now.getTime() + (istOffset + now.getTimezoneOffset() * 60 * 1000));
   return istTime.toLocaleTimeString('en-IN', { 
     hour: '2-digit', 
     minute: '2-digit',
-    second: '2-digit',
     hour12: true 
   });
 };
 
+const getGreeting = () => {
+  const now = new Date();
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istTime = new Date(now.getTime() + (istOffset + now.getTimezoneOffset() * 60 * 1000));
+  const hour = istTime.getHours();
+  
+  if (hour >= 5 && hour < 12) return "Good Morning";
+  if (hour >= 12 && hour < 17) return "Good Afternoon";
+  if (hour >= 17 && hour < 21) return "Good Evening";
+  return "Good Night";
+};
+
+type Phase = "askName" | "welcome" | "motivation" | "loading" | "facts" | "ready" | "exit";
+
 const IntroScreen = ({ onComplete }: IntroScreenProps) => {
+  const [userName, setUserName] = useState("");
+  const [phase, setPhase] = useState<Phase>("askName");
   const [facts, setFacts] = useState<string[]>([]);
-  const [currentFactIndex, setCurrentFactIndex] = useState(-1);
-  const [phase, setPhase] = useState<"loading" | "showing" | "ending" | "exit">("loading");
-  const [textVisible, setTextVisible] = useState(false);
+  const [currentFactIndex, setCurrentFactIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(getISTTime());
+  const [textVisible, setTextVisible] = useState(false);
+  const [motivationIndex, setMotivationIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleComplete = useCallback(() => {
     onComplete();
   }, [onComplete]);
 
-  // Update time every second
+  // Focus input on mount
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(getISTTime());
-    }, 1000);
+    if (phase === "askName" && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [phase]);
+
+  // Update time
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(getISTTime()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch facts from API
+  // Fetch facts
   useEffect(() => {
     const fetchFacts = async () => {
       try {
         const fetchedFacts: string[] = [];
-        // Fetch 3 facts from useless facts API
         for (let i = 0; i < 3; i++) {
           const response = await fetch("https://uselessfacts.jsph.pl/api/v2/facts/random?language=en");
           if (response.ok) {
             const data = await response.json();
-            if (data.text) {
+            if (data.text && data.text.length < 150) {
               fetchedFacts.push(data.text);
             }
           }
         }
-        
-        if (fetchedFacts.length > 0) {
-          setFacts(fetchedFacts);
-        } else {
-          setFacts(fallbackFacts);
-        }
+        setFacts(fetchedFacts.length >= 3 ? fetchedFacts : fallbackFacts);
       } catch {
         setFacts(fallbackFacts);
       }
-      
-      // Start showing facts after a brief moment
-      setTimeout(() => {
-        setPhase("showing");
-        setCurrentFactIndex(0);
-      }, 800);
     };
-
     fetchFacts();
   }, []);
 
-  // Progress through facts with cinematic timing
+  // Handle name submission
+  const handleNameSubmit = () => {
+    if (userName.trim()) {
+      setPhase("welcome");
+      setTextVisible(true);
+    }
+  };
+
+  // Phase transitions
   useEffect(() => {
-    if (phase !== "showing") return;
-    
-    if (currentFactIndex >= 0 && currentFactIndex < facts.length) {
-      // Fade in text
-      setTextVisible(false);
-      const fadeInTimer = setTimeout(() => setTextVisible(true), 100);
-      
-      // Move to next fact
-      const nextTimer = setTimeout(() => {
+    if (phase === "welcome") {
+      const timer = setTimeout(() => {
         setTextVisible(false);
         setTimeout(() => {
-          if (currentFactIndex < facts.length - 1) {
-            setCurrentFactIndex(prev => prev + 1);
-          } else {
-            setPhase("ending");
-          }
+          setPhase("motivation");
+          setTextVisible(true);
         }, 500);
-      }, 3500);
-      
-      return () => {
-        clearTimeout(fadeInTimer);
-        clearTimeout(nextTimer);
-      };
+      }, 2500);
+      return () => clearTimeout(timer);
     }
-  }, [currentFactIndex, facts.length, phase]);
 
-  // Handle ending phase
-  useEffect(() => {
-    if (phase === "ending") {
-      setTextVisible(true);
-      const exitTimer = setTimeout(() => {
+    if (phase === "motivation") {
+      const timer = setTimeout(() => {
+        if (motivationIndex < motivationalQuotes.length - 1) {
+          setTextVisible(false);
+          setTimeout(() => {
+            setMotivationIndex(prev => prev + 1);
+            setTextVisible(true);
+          }, 400);
+        } else {
+          setTextVisible(false);
+          setTimeout(() => {
+            setPhase("loading");
+          }, 500);
+        }
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+
+    if (phase === "loading") {
+      const timer = setTimeout(() => {
+        setPhase("facts");
+        setTextVisible(true);
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+
+    if (phase === "facts") {
+      const timer = setTimeout(() => {
+        if (currentFactIndex < facts.length - 1) {
+          setTextVisible(false);
+          setTimeout(() => {
+            setCurrentFactIndex(prev => prev + 1);
+            setTextVisible(true);
+          }, 400);
+        } else {
+          setTextVisible(false);
+          setTimeout(() => {
+            setPhase("ready");
+            setTextVisible(true);
+          }, 500);
+        }
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+
+    if (phase === "ready") {
+      const timer = setTimeout(() => {
         setPhase("exit");
         setTimeout(handleComplete, 1000);
-      }, 1500);
-      return () => clearTimeout(exitTimer);
+      }, 2000);
+      return () => clearTimeout(timer);
     }
-  }, [phase, handleComplete]);
+  }, [phase, motivationIndex, currentFactIndex, facts.length, handleComplete]);
 
-  const progress = facts.length > 0 ? ((currentFactIndex + 1) / facts.length) * 100 : 0;
+  const progress = phase === "facts" ? ((currentFactIndex + 1) / facts.length) * 100 : 
+                   phase === "ready" || phase === "exit" ? 100 : 0;
 
   return (
     <div
       className={`fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black transition-all duration-1000 ease-out ${
-        phase === "exit" ? "opacity-0 scale-110" : "opacity-100 scale-100"
+        phase === "exit" ? "opacity-0 scale-105" : "opacity-100 scale-100"
       }`}
     >
-      {/* Cinematic letterbox bars */}
-      <div className="absolute top-0 left-0 right-0 h-[8vh] bg-black z-20" />
-      <div className="absolute bottom-0 left-0 right-0 h-[8vh] bg-black z-20" />
-
-      {/* Subtle vignette effect */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)]" />
-
-      {/* Main content */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-8 md:px-16 max-w-4xl mx-auto text-center">
-        
-        {/* Loading state */}
-        {phase === "loading" && (
-          <div className="animate-pulse">
-            <div className="w-2 h-2 bg-white/30 rounded-full" />
-          </div>
-        )}
-
-        {/* Facts display */}
-        {phase === "showing" && currentFactIndex >= 0 && currentFactIndex < facts.length && (
-          <div 
-            key={currentFactIndex}
-            className={`transition-all duration-700 ease-out ${
-              textVisible 
-                ? "opacity-100 translate-y-0 blur-0" 
-                : "opacity-0 translate-y-4 blur-sm"
-            }`}
-          >
-            <p className="text-white/90 text-lg md:text-2xl lg:text-3xl font-extralight leading-relaxed tracking-wide"
-               style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
-              "{facts[currentFactIndex]}"
-            </p>
-          </div>
-        )}
-
-        {/* Ending message */}
-        {phase === "ending" && (
-          <div className={`transition-all duration-700 ease-out ${
-            textVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          }`}>
-            <p className="text-white/60 text-sm md:text-base tracking-[0.3em] uppercase mb-4">
-              Welcome to my portfolio
-            </p>
-            <h1 className="text-white text-3xl md:text-5xl font-light tracking-wide">
-              Hareesh Ragavendra
-            </h1>
-          </div>
-        )}
+      {/* Ambient glow */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-white/[0.02] to-transparent rounded-full" />
       </div>
 
-      {/* Current IST Time */}
-      <div className="absolute top-[10vh] left-1/2 -translate-x-1/2 text-center">
-        <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-1">India Standard Time</p>
-        <p className="text-white/70 text-2xl md:text-3xl font-light tracking-wider font-mono">
+      {/* Time display */}
+      <div className="absolute top-8 left-1/2 -translate-x-1/2 text-center">
+        <p className="text-white/60 text-3xl md:text-4xl font-extralight tracking-wider font-mono">
           {currentTime}
         </p>
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mt-1">IST</p>
       </div>
 
-      {/* Progress bar */}
-      <div className="absolute bottom-[10vh] left-1/2 -translate-x-1/2 w-64 md:w-80">
-        <div className="h-[2px] bg-white/10 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-white/50 transition-all duration-700 ease-out rounded-full"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <p className="text-white/30 text-xs text-center mt-3 tracking-wider">
-          {phase === "showing" ? `${currentFactIndex + 1} of ${facts.length}` : "Loading..."}
-        </p>
+      {/* Main content area */}
+      <div className="relative z-10 flex flex-col items-center justify-center px-6 md:px-16 max-w-3xl mx-auto text-center min-h-[300px]">
+        
+        {/* Ask Name Phase */}
+        {phase === "askName" && (
+          <div className="animate-fade-in space-y-8">
+            <div className="space-y-2">
+              <Sparkles className="w-8 h-8 text-white/40 mx-auto mb-4" />
+              <h2 className="text-white/90 text-2xl md:text-4xl font-extralight tracking-wide">
+                {getGreeting()}!
+              </h2>
+              <p className="text-white/50 text-base md:text-lg font-light">
+                What should I call you?
+              </p>
+            </div>
+            
+            <div className="flex flex-col items-center gap-4">
+              <input
+                ref={inputRef}
+                type="text"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()}
+                placeholder="Enter your name..."
+                className="w-64 md:w-80 bg-transparent border-b-2 border-white/20 focus:border-white/50 text-white text-center text-xl md:text-2xl font-light py-3 outline-none transition-all duration-300 placeholder:text-white/20"
+                autoComplete="off"
+              />
+              
+              <button
+                onClick={handleNameSubmit}
+                disabled={!userName.trim()}
+                className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm tracking-wider uppercase transition-all duration-300 ${
+                  userName.trim() 
+                    ? "bg-white/10 text-white/80 hover:bg-white/20 hover:scale-105" 
+                    : "bg-white/5 text-white/20 cursor-not-allowed"
+                }`}
+              >
+                Continue <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Welcome Phase */}
+        {phase === "welcome" && (
+          <div className={`transition-all duration-700 ease-out ${
+            textVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}>
+            <p className="text-white/40 text-sm tracking-[0.3em] uppercase mb-4">Welcome</p>
+            <h1 className="text-white text-4xl md:text-6xl font-extralight tracking-wide mb-4">
+              Hello, <span className="text-white/90">{userName}</span>
+            </h1>
+            <p className="text-white/50 text-lg font-light">
+              It's wonderful to have you here ✨
+            </p>
+          </div>
+        )}
+
+        {/* Motivation Phase */}
+        {phase === "motivation" && (
+          <div className={`transition-all duration-500 ease-out ${
+            textVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-4 scale-95"
+          }`}>
+            <p className="text-white/70 text-xl md:text-3xl font-extralight leading-relaxed tracking-wide italic">
+              "{motivationalQuotes[motivationIndex]}"
+            </p>
+          </div>
+        )}
+
+        {/* Loading Phase */}
+        {phase === "loading" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-center gap-1">
+              <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+              <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+              <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+            </div>
+            <p className="text-white/30 text-sm tracking-wider">Preparing something special...</p>
+          </div>
+        )}
+
+        {/* Facts Phase */}
+        {phase === "facts" && facts.length > 0 && (
+          <div className="space-y-8">
+            <p className="text-white/40 text-xs tracking-[0.2em] uppercase">Did you know?</p>
+            
+            {/* Progress bar */}
+            <div className="w-64 md:w-96 mx-auto">
+              <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-white/30 to-white/60 rounded-full transition-all duration-700 ease-out"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="text-white/20 text-xs text-center mt-2 tracking-wider font-mono">
+                {currentFactIndex + 1} / {facts.length}
+              </p>
+            </div>
+
+            {/* Fact text below progress bar */}
+            <div className={`transition-all duration-500 ease-out max-w-2xl ${
+              textVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            }`}>
+              <p className="text-white/60 text-base md:text-lg font-light leading-relaxed">
+                {facts[currentFactIndex]}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Ready Phase */}
+        {phase === "ready" && (
+          <div className={`transition-all duration-700 ease-out ${
+            textVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-95"
+          }`}>
+            <p className="text-white/40 text-sm tracking-[0.3em] uppercase mb-6">Ready to explore</p>
+            <h1 className="text-white text-3xl md:text-5xl font-extralight tracking-wide mb-3">
+              {userName}'s Journey Begins
+            </h1>
+            <p className="text-white/50 text-lg font-light">
+              Welcome to the portfolio of <span className="text-white/80">Hareesh Ragavendra</span>
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Skip button - minimal */}
-      <button
-        onClick={() => {
-          setPhase("exit");
-          setTimeout(handleComplete, 800);
-        }}
-        className="absolute bottom-[10vh] right-8 text-white/20 hover:text-white/50 text-xs tracking-[0.2em] uppercase transition-colors duration-300"
-      >
-        Skip
-      </button>
+      {/* Skip button */}
+      {phase !== "askName" && phase !== "exit" && (
+        <button
+          onClick={() => {
+            setPhase("exit");
+            setTimeout(handleComplete, 800);
+          }}
+          className="absolute bottom-8 right-8 text-white/20 hover:text-white/40 text-xs tracking-[0.2em] uppercase transition-all duration-300"
+        >
+          Skip
+        </button>
+      )}
     </div>
   );
 };
