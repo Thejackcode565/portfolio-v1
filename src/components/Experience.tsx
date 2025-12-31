@@ -206,15 +206,13 @@ const Experience = () => {
                     whileHover={{ scale: 1.02, x: 5 }}
                   >
                     <p className="font-medium text-sm group-hover:text-primary transition-colors">Microsoft Azure Fundamentals (AZ-900)</p>
-                    <p className="text-xs text-muted-foreground mt-1 group-hover:text-muted-foreground/80 transition-colors">Cloud Computing • 2025</p>
                   </motion.div>
                   <motion.div
                     variants={rightItemVariants}
                     className="group p-4 rounded-lg bg-secondary/30 border border-border hover:border-primary/30 hover:bg-secondary/50 transition-all duration-300 cursor-default"
                     whileHover={{ scale: 1.02, x: 5 }}
                   >
-                    <p className="font-medium text-sm group-hover:text-primary transition-colors">Android App Development Basics</p>
-                    <p className="text-xs text-muted-foreground mt-1 group-hover:text-muted-foreground/80 transition-colors">Online Course • 2023</p>
+                    <p className="font-medium text-sm group-hover:text-primary transition-colors">Android App Development</p>
                   </motion.div>
                   <motion.div
                     variants={rightItemVariants}
@@ -222,7 +220,6 @@ const Experience = () => {
                     whileHover={{ scale: 1.02, x: 5 }}
                   >
                     <p className="font-medium text-sm group-hover:text-primary transition-colors">Python Advance Course</p>
-                    <p className="text-xs text-muted-foreground mt-1 group-hover:text-muted-foreground/80 transition-colors">Programming Hero • 2022</p>
                   </motion.div>
                 </motion.div>
               </motion.div>
