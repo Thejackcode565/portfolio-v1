@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Menu, X, Download } from "lucide-react";
+import { Menu, X, Download, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "./ui/button";
 import { motion } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
   { href: "#skills", label: "Skills" },
@@ -13,6 +14,11 @@ const navLinks = [
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState(false);
+  const { isAuthorized, checkPassword } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,6 +27,27 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleResumeClick = (e: React.MouseEvent) => {
+    if (!isAuthorized) {
+      e.preventDefault();
+      setShowPasswordModal(true);
+      setError(false);
+      setPassword("");
+    }
+  };
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (checkPassword(password)) {
+      setShowPasswordModal(false);
+      // Trigger download after auth
+      window.open("./Hareesh_Ragavendra_Resume.pdf", "_blank");
+    } else {
+      setError(true);
+      setPassword("");
+    }
+  };
 
   return (
     <header
@@ -70,8 +97,12 @@ const Navbar = () => {
               className="border-primary/50 hover:border-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300"
               asChild
             >
-              <a href="./Hareesh_Ragavendra_Resume.pdf" download>
-                <Download className="w-4 h-4 mr-2" />
+              <a 
+                href="./Hareesh_Ragavendra_Resume.pdf" 
+                download={isAuthorized}
+                onClick={handleResumeClick}
+              >
+                {isAuthorized ? <Download className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
                 Resume
               </a>
             </Button>
@@ -115,8 +146,12 @@ const Navbar = () => {
                   className="w-full border-primary/50 hover:border-primary hover:bg-primary hover:text-primary-foreground transition-all"
                   asChild
                 >
-                  <a href="./Hareesh_Ragavendra_Resume.pdf" download>
-                    <Download className="w-4 h-4 mr-2" />
+                  <a 
+                    href="./Hareesh_Ragavendra_Resume.pdf" 
+                    download={isAuthorized}
+                    onClick={handleResumeClick}
+                  >
+                    {isAuthorized ? <Download className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
                     Resume
                   </a>
                 </Button>
@@ -125,6 +160,79 @@ const Navbar = () => {
           </motion.div>
         )}
       </nav>
+
+      {/* Password Modal for Resume */}
+      {showPasswordModal && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowPasswordModal(false)}
+        >
+          <div 
+            className="relative w-full max-w-sm mx-4 p-6 rounded-2xl bg-card border border-border shadow-2xl animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowPasswordModal(false)}
+              className="absolute top-4 right-4 p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 border border-primary/20 mb-4">
+                <Lock className="w-5 h-5 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold">Download Resume</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Enter password to access resume
+              </p>
+            </div>
+
+            <form onSubmit={handlePasswordSubmit}>
+              <div className="relative mb-4">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError(false);
+                  }}
+                  placeholder="Enter password"
+                  autoFocus
+                  className={`w-full px-4 py-3 pr-10 rounded-xl bg-secondary/50 border ${
+                    error ? "border-red-500" : "border-border"
+                  } text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {error && (
+                <p className="text-red-500 text-sm mb-4 text-center">
+                  Incorrect password. Please try again.
+                </p>
+              )}
+
+              <button
+                type="submit"
+                className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                Download Resume
+              </button>
+            </form>
+
+            <p className="text-xs text-muted-foreground/60 text-center mt-4">
+              Contact me for access credentials
+            </p>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

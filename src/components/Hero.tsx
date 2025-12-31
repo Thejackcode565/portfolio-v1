@@ -1,9 +1,12 @@
 import { Github, Linkedin, Mail, MapPin, ExternalLink } from "lucide-react";
 import { Button } from "./ui/button";
 import { motion } from "framer-motion";
+import ProtectedData from "./ProtectedData";
+import { useAuth } from "@/context/AuthContext";
 
 const Hero = () => {
-  const particles = Array.from({ length: 3 }, (_, i) => i); // Reduced from 5 to 3 particles
+  const { isAuthorized } = useAuth();
+  const particles = Array.from({ length: 3 }, (_, i) => i);
   
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-hero">
@@ -87,7 +90,9 @@ const Hero = () => {
             className="flex items-center justify-center gap-2 text-muted-foreground mb-10"
           >
             <MapPin className="w-4 h-4" />
-            <span className="font-mono text-sm">Chennai, Tamil Nadu, India</span>
+            <span className="font-mono text-sm">
+              <ProtectedData value="Chennai, Tamil Nadu, India" masked="••••••, India" />
+            </span>
           </motion.div>
 
           {/* CTA Buttons */}
@@ -97,13 +102,17 @@ const Hero = () => {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="flex flex-wrap items-center justify-center gap-4 mb-12"
           >
-            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 glow-primary transition-all duration-300">
-              <Mail className="w-4 h-4 mr-2" />
-              Get in Touch
+            <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 glow-primary transition-all duration-300" asChild>
+              <a href="mailto:hareeshworksoffcial@gmail.com">
+                <Mail className="w-4 h-4 mr-2" />
+                Get in Touch
+              </a>
             </Button>
-            <Button size="lg" variant="outline" className="border-border hover:bg-secondary hover:border-primary/50 transition-all duration-300">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              View Projects
+            <Button size="lg" variant="outline" className="border-border hover:bg-secondary hover:border-primary/50 transition-all duration-300" asChild>
+              <a href="#projects">
+                <ExternalLink className="w-4 h-4 mr-2" />
+                View Projects
+              </a>
             </Button>
           </motion.div>
 
@@ -131,7 +140,7 @@ const Hero = () => {
               <Linkedin className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
             </a>
             <a 
-              href="mailto:Dhareesh205@gmail.com"
+              href="mailto:hareeshworksoffcial@gmail.com"
               className="p-3 rounded-lg bg-secondary/50 border border-border hover:border-primary/50 hover:bg-secondary transition-all duration-300 group"
             >
               <Mail className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />

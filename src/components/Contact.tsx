@@ -65,13 +65,13 @@ const Contact = () => {
                 <div>
                   <p className="text-sm text-muted-foreground">Email</p>
                   {isAuthorized ? (
-                    <a href="mailto:dhareesh205@gmail.com" className="font-semibold group-hover:text-primary transition-colors">
-                      Dhareesh205@gmail.com
+                    <a href="mailto:hareeshworksoffcial@gmail.com" className="font-semibold group-hover:text-primary transition-colors">
+                      hareeshworksoffcial@gmail.com
                     </a>
                   ) : (
                     <ProtectedData 
-                      value="Dhareesh205@gmail.com" 
-                      masked="d•••••@gmail.com"
+                      value="hareeshworksoffcial@gmail.com" 
+                      masked="h•••••@gmail.com"
                       className="font-semibold"
                     />
                   )}
@@ -104,17 +104,17 @@ const Contact = () => {
               <motion.div
                 variants={itemVariants}
                 className="group flex items-center gap-4 p-4 rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg cursor-default"
-                whileHover={{ scale: 1.03, x: 5 }}
               >
-                <motion.div 
-                  className="p-3 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors flex-shrink-0"
-                  whileHover={{ scale: 1.1, rotate: 10 }}
-                >
+                <div className="p-3 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors flex-shrink-0">
                   <MapPin className="w-5 h-5 text-primary" />
-                </motion.div>
+                </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Location</p>
-                  <p className="font-semibold group-hover:text-primary transition-colors">Chennai, Tamil Nadu, India</p>
+                  <ProtectedData 
+                    value="Chennai, Tamil Nadu, India" 
+                    masked="••••••, India"
+                    className="font-semibold"
+                  />
                 </div>
               </motion.div>
 
@@ -168,7 +168,7 @@ const Contact = () => {
                   className="bg-primary text-primary-foreground hover:bg-primary/90 glow-primary w-full transition-all duration-300"
                   asChild
                 >
-                  <a href="mailto:Dhareesh205@gmail.com">
+                  <a href="mailto:hareeshworksoffcial@gmail.com">
                     <Mail className="w-4 h-4 mr-2" />
                     Send Email
                   </a>
