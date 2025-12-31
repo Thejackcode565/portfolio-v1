@@ -7,28 +7,24 @@ const skillCategories = [
     title: "Languages",
     skills: ["Kotlin", "Java", "Python", "C#"],
     color: "from-pink-500 to-rose-500",
-    size: "col-span-1",
   },
   {
     icon: Smartphone,
     title: "Android",
     skills: ["Jetpack Compose", "Android NDK", "MVVM", "Retrofit", "REST APIs", "OkHttp"],
     color: "from-purple-500 to-pink-500",
-    size: "col-span-1 md:col-span-2 row-span-2",
   },
   {
     icon: Database,
     title: "Backend",
     skills: ["Django REST", "PostgreSQL", "Git", "cPanel"],
     color: "from-cyan-500 to-blue-500",
-    size: "col-span-1",
   },
   {
     icon: Shield,
     title: "Security",
     skills: ["Pen Testing", "Reverse Engineering", "Burp Suite"],
     color: "from-orange-500 to-pink-500",
-    size: "col-span-1 md:col-span-2",
   },
 ];
 
@@ -53,8 +49,8 @@ const Skills = () => {
           </h2>
         </motion.div>
 
-        {/* Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[180px]">
+        {/* Bento Grid - 2 columns on mobile, 2 on desktop */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {skillCategories.map((category, idx) => (
             <motion.div
               key={category.title}
@@ -62,7 +58,7 @@ const Skills = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              className={`${category.size} bento-card glass-card rounded-3xl p-6 overflow-hidden relative group`}
+              className="bento-card glass-card rounded-3xl p-6 overflow-hidden relative group"
             >
               {/* Gradient overlay on hover */}
               <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
@@ -88,30 +84,28 @@ const Skills = () => {
               </div>
             </motion.div>
           ))}
-
-          {/* Stats card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.4 }}
-            className="col-span-1 bento-card glass-card rounded-3xl p-6 flex flex-col justify-center"
-          >
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { value: "4+", label: "Languages" },
-                { value: "8+", label: "Frameworks" },
-                { value: "15+", label: "Tools" },
-                { value: "3+", label: "Years" },
-              ].map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <p className="text-2xl font-bold text-gradient">{stat.value}</p>
-                  <p className="text-xs text-white/50">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          </motion.div>
         </div>
+
+        {/* Stats row */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.4 }}
+          className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4"
+        >
+          {[
+            { value: "4+", label: "Languages" },
+            { value: "8+", label: "Frameworks" },
+            { value: "15+", label: "Tools" },
+            { value: "3+", label: "Years" },
+          ].map((stat) => (
+            <div key={stat.label} className="glass-card rounded-2xl p-4 text-center">
+              <p className="text-2xl font-bold text-gradient">{stat.value}</p>
+              <p className="text-xs text-white/50">{stat.label}</p>
+            </div>
+          ))}
+        </motion.div>
       </div>
     </section>
   );
