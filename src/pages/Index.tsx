@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Skills from "@/components/Skills";
@@ -14,11 +13,9 @@ const Index = () => {
 
   return (
     <>
-      <AnimatePresence mode="wait">
-        {isBooting && (
-          <BootingScreen onComplete={() => setIsBooting(false)} />
-        )}
-      </AnimatePresence>
+      {isBooting && (
+        <BootingScreen onComplete={() => setIsBooting(false)} />
+      )}
 
       {!isBooting && (
         <div className="min-h-screen bg-background">
