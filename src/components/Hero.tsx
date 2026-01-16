@@ -18,7 +18,7 @@ const Hero = () => {
             {/* Avatar */}
             <div className="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden flex-shrink-0 border border-white/10">
               <img 
-                src="./profile.png" 
+                src="/portfolio-v1/profile.png" 
                 alt="Hareesh Ragavendra" 
                 className="w-full h-full object-cover"
               />
